@@ -19,5 +19,6 @@
     <string name="calculate_bmi">Calculate BMI</string>
     <string name="height_amount">Height Amount in cm</string>
     <string name="weight_amount">Weight Amount in Kg</string>
+    <string name="calculate_button">Calculate</string>
     <string name="bmi_amount">BMI: %s</string>
 </resources>

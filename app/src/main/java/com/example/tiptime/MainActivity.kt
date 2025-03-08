@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -69,10 +70,7 @@ class MainActivity : ComponentActivity() {
 fun BmiCalculatorLayout() {
     var heightInput by remember { mutableStateOf("") }
     var weightInput by remember { mutableStateOf("") }
-
-    val height = heightInput.toDoubleOrNull() ?: 0.0
-    val weight = weightInput.toDoubleOrNull() ?: 0.0
-    val bmi = calculateBMI(height, weight)
+    var bmiResult by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -101,10 +99,25 @@ fun BmiCalculatorLayout() {
             label = stringResource(R.string.weight_amount), // Weight input
             modifier = Modifier.padding(bottom = 32.dp).fillMaxWidth()
         )
-        Text(
-            text = stringResource(R.string.bmi_amount, bmi),
-            style = MaterialTheme.typography.displaySmall
-        )
+        Button(
+            onClick = {
+                // Calculate BMI only when the button is clicked
+                val height = heightInput.toDoubleOrNull() ?: 0.0
+                val weight = weightInput.toDoubleOrNull() ?: 0.0
+                bmiResult = calculateBMI(height, weight)
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 32.dp)
+        ) {
+            Text(text = stringResource(R.string.calculate_button))
+        }
+        if (bmiResult.isNotEmpty()) {
+            Text(
+                text = stringResource(R.string.bmi_amount, bmiResult),
+                style = MaterialTheme.typography.displaySmall
+            )
+        }
         Spacer(modifier = Modifier.height(150.dp))
     }
 }
@@ -126,7 +139,7 @@ fun EditNumberField(
     )
 }
 
-private fun calculateBMI(height: Double, weight: Double, tipPercent: Double = 15.0): String {
+private fun calculateBMI(height: Double, weight: Double): String {
     if (height == 0.0) return "0.0" // Avoid division by zero
     val heightInMeters = height / 100 //convert cm to m
 
