@@ -133,7 +133,14 @@ fun EditNumberField(
         value = value,
         singleLine = true,
         modifier = modifier,
-        onValueChange = onValueChanged,
+//        onValueChange = onValueChanged,
+        onValueChange = { newValue ->
+            // Filter out non-numeric characters except decimal point
+            val filteredValue = newValue.filter { char ->
+                char.isDigit() || char == '.'
+            }
+            onValueChanged(filteredValue)
+        },
         label = { Text(label) },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
     )
