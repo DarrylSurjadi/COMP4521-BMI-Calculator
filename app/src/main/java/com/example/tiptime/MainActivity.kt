@@ -19,8 +19,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,10 +31,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -49,6 +57,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.tiptime.ui.theme.TipTimeTheme
 import java.text.NumberFormat
+import androidx.compose.material3.Icon
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -72,6 +81,11 @@ fun BmiCalculatorLayout() {
     var weightInput by remember { mutableStateOf("") }
     var bmiResult by remember { mutableStateOf("") }
 
+    var heightUnit by remember { mutableStateOf("cm") }
+    val heightUnits = listOf("cm", "in")
+    var weightUnit by remember { mutableStateOf("kg") }
+    val weightUnits = listOf("kg", "lbs")
+
     Column(
         modifier = Modifier
             .statusBarsPadding()
@@ -87,24 +101,58 @@ fun BmiCalculatorLayout() {
                 .padding(bottom = 16.dp, top = 40.dp)
                 .align(alignment = Alignment.Start)
         )
-        EditNumberField(
-            value = heightInput,
-            onValueChanged = { heightInput = it },
-            label = stringResource(R.string.height_amount),
-            modifier = Modifier.padding(bottom = 32.dp).fillMaxWidth()
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+        ){
+            EditNumberField(
+                value = heightInput,
+                onValueChanged = { heightInput = it },
+                label = stringResource(R.string.height_amount),
+                modifier = Modifier
+                    .padding(bottom = 32.dp)
+                    .weight(1f)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            UnitDropdownMenu(
+                selectedUnit = heightUnit,
+                units = heightUnits,
+                onUnitSelected = { heightUnit = it }
+            )
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
         )
-        EditNumberField(
-            value = weightInput,
-            onValueChanged = { weightInput = it },
-            label = stringResource(R.string.weight_amount), // Weight input
-            modifier = Modifier.padding(bottom = 32.dp).fillMaxWidth()
-        )
+        {
+            EditNumberField(
+                value = weightInput,
+                onValueChanged = { weightInput = it },
+                label = stringResource(R.string.weight_amount),
+                modifier = Modifier
+                    .padding(bottom = 32.dp)
+                    .weight(1f)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            UnitDropdownMenu(
+                selectedUnit = weightUnit,
+                units = weightUnits,
+                onUnitSelected = { weightUnit = it }
+            )
+        }
         Button(
             onClick = {
                 // Calculate BMI only when the button is clicked
-                val height = heightInput.toDoubleOrNull() ?: 0.0
-                val weight = weightInput.toDoubleOrNull() ?: 0.0
-                bmiResult = calculateBMI(height, weight)
+                val heightInCm = when (heightUnit) {
+                    "cm" -> heightInput.toDoubleOrNull() ?: 0.0
+                    "in" -> convertInchToCm(heightInput.toDoubleOrNull() ?: 0.0)
+                    else -> 0.0
+                }
+                val weightInKg = when (weightUnit) {
+                    "kg" -> weightInput.toDoubleOrNull() ?: 0.0
+                    "lbs" -> convertPoundsToKg(weightInput.toDoubleOrNull() ?: 0.0)
+                    else -> 0.0
+                }
+
+                bmiResult = calculateBMI(heightInCm, weightInKg)
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -133,7 +181,6 @@ fun EditNumberField(
         value = value,
         singleLine = true,
         modifier = modifier,
-//        onValueChange = onValueChanged,
         onValueChange = { newValue ->
             // Filter out non-numeric characters except decimal point
             val filteredValue = newValue.filter { char ->
@@ -144,6 +191,56 @@ fun EditNumberField(
         label = { Text(label) },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
     )
+}
+
+@Composable
+fun UnitDropdownMenu(
+    selectedUnit: String,
+    units: List<String>,
+    onUnitSelected: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Box(modifier = Modifier.width(100.dp)) {
+        TextField(
+            value = selectedUnit,
+            onValueChange = {},
+            readOnly = true,
+            trailingIcon = {
+                Icon(
+                    imageVector = Icons.Default.ArrowDropDown,
+                    contentDescription = "Dropdown Arrow",
+                    modifier = Modifier.clickable { expanded = true }
+                )
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expanded = true }
+        )
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            units.forEach { unit ->
+                DropdownMenuItem(
+                    text = { Text(unit) },
+                    onClick = {
+                        onUnitSelected(unit)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+}
+
+private fun convertInchToCm(inches: Double): Double {
+    return inches * 2.54
+}
+
+private fun convertPoundsToKg(pounds: Double): Double {
+    return pounds * 0.453592
 }
 
 private fun calculateBMI(height: Double, weight: Double): String {
