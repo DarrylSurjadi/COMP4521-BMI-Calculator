@@ -56,8 +56,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.tiptime.ui.theme.TipTimeTheme
-import java.text.NumberFormat
 import androidx.compose.material3.Icon
+import java.text.DecimalFormat
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -138,27 +138,43 @@ fun BmiCalculatorLayout() {
                 onUnitSelected = { weightUnit = it }
             )
         }
-        Button(
-            onClick = {
-                // Calculate BMI only when the button is clicked
-                val heightInCm = when (heightUnit) {
-                    "cm" -> heightInput.toDoubleOrNull() ?: 0.0
-                    "in" -> convertInchToCm(heightInput.toDoubleOrNull() ?: 0.0)
-                    else -> 0.0
-                }
-                val weightInKg = when (weightUnit) {
-                    "kg" -> weightInput.toDoubleOrNull() ?: 0.0
-                    "lbs" -> convertPoundsToKg(weightInput.toDoubleOrNull() ?: 0.0)
-                    else -> 0.0
-                }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+        )
+        {
+            Button(
+                onClick = {
+                    val heightInCm = when (heightUnit) {
+                        "cm" -> heightInput.toDoubleOrNull() ?: 0.0
+                        "in" -> convertInchToCm(heightInput.toDoubleOrNull() ?: 0.0)
+                        else -> 0.0
+                    }
+                    val weightInKg = when (weightUnit) {
+                        "kg" -> weightInput.toDoubleOrNull() ?: 0.0
+                        "lbs" -> convertPoundsToKg(weightInput.toDoubleOrNull() ?: 0.0)
+                        else -> 0.0
+                    }
 
-                bmiResult = calculateBMI(heightInCm, weightInKg)
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 32.dp)
-        ) {
-            Text(text = stringResource(R.string.calculate_button))
+                    bmiResult = calculateBMI(heightInCm, weightInKg)
+                },
+                modifier = Modifier
+                    .padding(bottom = 16.dp)
+                    .weight(2f)
+            ) {
+                Text(text = stringResource(R.string.calculate_button))
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Button(
+                onClick = {
+                    heightInput = ""
+                    weightInput = ""
+                    bmiResult = ""
+                },
+                modifier = Modifier
+                    .padding(bottom = 16.dp)
+            ) {
+                Text(text = stringResource(R.string.clear_button))
+            }
         }
         if (bmiResult.isNotEmpty()) {
             Text(
@@ -248,7 +264,8 @@ private fun calculateBMI(height: Double, weight: Double): String {
     val heightInMeters = height / 100 //convert cm to m
 
     val bmi = weight / (heightInMeters * heightInMeters)
-    return NumberFormat.getNumberInstance().format(bmi)
+    val df = DecimalFormat("#.##")
+    return df.format(bmi)
 }
 
 @Preview(showBackground = true)

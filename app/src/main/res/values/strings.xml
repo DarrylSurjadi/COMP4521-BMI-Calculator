@@ -20,5 +20,6 @@
     <string name="height_amount">Enter your height</string>
     <string name="weight_amount">Enter your weight</string>
     <string name="calculate_button">Calculate</string>
+    <string name="clear_button">Clear</string>
     <string name="bmi_amount">BMI: %s</string>
 </resources>
